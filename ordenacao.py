@@ -6,10 +6,12 @@ Cenários testados:
     2. Dados grandes       (n >= 10.000)
     3. Dados parcialmente ordenados (tamanho livre)
 
-- O módulo time é utilizado para a Análise de Complexidade Empírica;
-- O módulo random é utilizado para gerar listas de valores aleatórios dentro de um intervalo;
-- O módulo copy é utilizado para que os dois algoritmos recebam a MESMA lista como parâmetro,
-  pois os dois métodos de ordenação não retornam novas listas, mas ordenam a lista que receberam.
+O módulo time é utilizado para a Análise de Complexidade Empírica;
+
+O módulo random é utilizado para gerar listas de valores aleatórios dentro de um intervalo;
+
+O módulo copy é utilizado para que os dois algoritmos recebam a MESMA lista como parâmetro,
+pois o Insertion Sort não retorna uma nova lista, mas ordena a lista que recebeu.
 """
 
 import time
@@ -18,7 +20,6 @@ import copy
 
 # DECLARAÇÃO DO INSERTION SORT
 def insertion_sort(lista):
-
     n = len(lista)
 
     for i in range(1, n):
@@ -31,24 +32,11 @@ def insertion_sort(lista):
             j -= 1
 
         lista[j + 1] = chave
-    return lista
+    return lista #retorna a lista do parâmetro, em vez de uma nova lista ordenada.
 
 # DECLARAÇÃO DO QUICK SORT
 def quick_sort(lista):
-    """
-    Quick Sort — retorna uma NOVA lista ordenada (não altera 'arr').
-    Usa particionamento com pivô escolhido no meio da lista (reduz o
-    risco do pior caso em dados já ordenados, comparado ao pivô fixo).
-
-    Complexidade teórica:
-        Melhor/médio caso: O(n log n)
-        Pior caso:          O(n^2)   -> partições sempre desbalanceadas
-                                         (ex.: pivô sempre o menor/maior elemento)
-        Espaço:             O(log n) em média (pilha de recursão);
-                             aqui a implementação recursiva com listas
-                             novas usa O(n) de espaço auxiliar.
-        Estável:            Não (nesta implementação)
-    """
+    # caso base (condição de parada) para a recursividade
     if len(lista) <= 1:
         return lista
 
@@ -57,23 +45,23 @@ def quick_sort(lista):
     iguais = [x for x in lista if x == pivo]
     maiores = [x for x in lista if x > pivo]
 
-    return quick_sort(menores) + iguais + quick_sort(maiores)
+    return quick_sort(menores) + iguais + quick_sort(maiores) # utiliza recursividade
 
 
 # 2. FUNÇÕES DE GERAÇÃO DE DADOS ALEATÓRIOS
 
-def gerar_dados_aleatorios(n, limite_inf=0, limite_sup=1_000_000):
-    return [random.randint(limite_inf, limite_sup) for _ in range(n)]
+def gerar_dados_aleatorios(n, lim_inferior = 0, lim_superior = 1_000_000):
+    return [random.randint(lim_inferior, lim_superior) for _ in range(n)]
 
 
-def gerar_dados_parcialmente_ordenados(n, fracao_embaralhada=0.1):
+def gerar_dados_parcialmente_ordenados(n, embaralhados = 0.1):
     """
-    Gera uma lista ordenada de 0..n-1 e embaralha apenas uma fração
+    Gera uma lista ordenada de 0..n-1 e embaralha apenas uma parte
     dos elementos (troca pares aleatórios de posição), simulando dados
     'quase ordenados'.
     """
     dados = list(range(n))
-    qtd_trocas = max(1, int(n * fracao_embaralhada))
+    qtd_trocas = max(1, int(n * embaralhados))
     for _ in range(qtd_trocas):
         i, j = random.randint(0, n - 1), random.randint(0, n - 1)
         dados[i], dados[j] = dados[j], dados[i]
@@ -83,29 +71,23 @@ def gerar_dados_parcialmente_ordenados(n, fracao_embaralhada=0.1):
 # 3. FUNÇÃO DE MEDIÇÃO DE TEMPO
 
 def medir_tempo(func, dados):
-    """
-    Mede o tempo de execução de 'func' aplicada sobre uma CÓPIA de 'dados',
-    para que os dois algoritmos sempre recebam o mesmo conjunto original.
-    """
+
     dados_copia = copy.deepcopy(dados)
     inicio = time.perf_counter()
     resultado = func(dados_copia)
     fim = time.perf_counter()
     tempo_execucao = fim - inicio
 
-    # valida se realmente ordenou corretamente
+    # valida se a ordenação funcionou
     ordenado_corretamente = resultado == sorted(dados)
     return tempo_execucao, ordenado_corretamente
 
 
-# =========================================================
 # 4. EXECUÇÃO DOS CENÁRIOS DE TESTE
-# =========================================================
 
-def rodar_cenario(nome_cenario, dados):
-    print(f"\n{'=' * 60}")
-    print(f"CENÁRIO: {nome_cenario}  (n = {len(dados)})")
-    print(f"{'=' * 60}")
+def testar_cenario(nome_cenario, dados):
+    print(f"\n{'-' * 60}")
+    print(f"Cenário: {nome_cenario}  (n = {len(dados)})\n")
 
     tempo_insertion, ok_insertion = medir_tempo(insertion_sort, dados)
     tempo_quick, ok_quick = medir_tempo(quick_sort, dados)
@@ -127,21 +109,21 @@ def main():
 
     resultados = {}
 
-    # ---- Cenário 1: dados pequenos (n <= 100) ----
+    # Cenário 1: dados pequenos (n <= 100)
     dados_pequenos = gerar_dados_aleatorios(100)
-    resultados["Pequeno (n=100)"] = rodar_cenario(
+    resultados["Pequeno (n=100)"] = testar_cenario(
         "Dados pequenos (n <= 100)", dados_pequenos
     )
 
-    # ---- Cenário 2: dados grandes (n >= 10.000) ----
+    # Cenário 2: dados grandes (n >= 10.000)
     dados_grandes = gerar_dados_aleatorios(15_000)
-    resultados["Grande (n=15000)"] = rodar_cenario(
+    resultados["Grande (n=15000)"] = testar_cenario(
         "Dados grandes (n >= 10.000)", dados_grandes
     )
 
-    # ---- Cenário 3: dados parcialmente ordenados (tamanho livre) ----
+    # Cenário 3: dados parcialmente ordenados (tamanho livre)
     dados_parciais = gerar_dados_parcialmente_ordenados(5_000, fracao_embaralhada=0.05)
-    resultados["Parcialmente ordenado (n=5000)"] = rodar_cenario(
+    resultados["Parcialmente ordenado (n=5000)"] = testar_cenario(
         "Dados parcialmente ordenados (95% já em ordem)", dados_parciais
     )
 
